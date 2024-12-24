@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>~/test/c240211/sinx.c.html</title>
+<meta name="Generator" content="Vim/8.2">
+<meta name="plugin-version" content="vim8.1_v2">
+<meta name="syntax" content="c">
+<meta name="settings" content="use_css,pre_wrap,no_foldcolumn,expand_tabs,prevent_copy=,use_input_for_pc=fallback">
+<meta name="colorscheme" content="askar">
+<style>
+<!--
+pre { white-space: pre-wrap; font-family: monospace; color: #ffffff; background-color: #000000; }
+body { font-family: monospace; color: #ffffff; background-color: #000000; }
+* { font-size: 1em; }
+.String { color: #ff40ff; font-weight: bold; }
+.Number { color: #ffff00; font-weight: bold; }
+.Conditional { color: #ff6060; font-weight: bold; }
+.PreProc { color: #00ffff; }
+.Include { color: #87ffaf; }
+.Type { color: #00ffff; font-weight: bold; }
+.Constant { color: #87ffaf; font-weight: bold; }
+.Special { color: #5fd7ff; font-weight: bold; }
+.Comment { color: #008000; font-weight: bold; }
+.Statement { color: #87ffaf; font-weight: bold; }
+-->
+</style>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="Comment">/*</span><span class="Comment"> Calculation of value sin(x)</span>
+<span class="Comment">   with acceptable accuracy.</span>
+
+<span class="Comment">   Author: Askar Azhibaev.</span>
+<span class="Comment">   Date: Wed 14 Aug 2024 16:29:07 UTC</span>
+<span class="Comment">*/</span>
+<span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
+<span class="Include">#include </span><span class="String">&lt;stdlib.h&gt;</span>
+
+<span class="PreProc">#define DEFAULT_DELTA_ERROR </span><span class="Number">0.0000005</span>
+<span class="PreProc">#define DEFAULT_FORMAT_PRECISION </span><span class="String">&quot;.6&quot;</span>
+<span class="PreProc">#define PI </span><span class="Number">3.141592653589793</span>
+
+<span class="Type">int</span> main(<span class="Type">int</span> argc, <span class="Type">const</span> <span class="Type">char</span> *argv[])
+{
+    <span class="Type">double</span> x = <span class="Number">0</span>;               <span class="Comment">/*</span><span class="Comment"> x argument </span><span class="Comment">*/</span>
+    <span class="Type">double</span> d_error = <span class="Number">0</span>;         <span class="Comment">/*</span><span class="Comment"> delta error argument </span><span class="Comment">*/</span>
+    <span class="Type">double</span> x2 = <span class="Number">0</span>;              <span class="Comment">/*</span><span class="Comment"> x * x </span><span class="Comment">*/</span>
+    <span class="Type">double</span> d_factorial = <span class="Number">0</span>;     <span class="Comment">/*</span><span class="Comment"> delta factorial </span><span class="Comment">*/</span>
+    <span class="Type">double</span> term = <span class="Number">0</span>;            <span class="Comment">/*</span><span class="Comment"> term </span><span class="Comment">*/</span>
+    <span class="Type">double</span> sum = <span class="Number">0</span>;             <span class="Comment">/*</span><span class="Comment"> summa </span><span class="Comment">*/</span>
+    <span class="Type">double</span> i = <span class="Number">1</span>;               <span class="Comment">/*</span><span class="Comment"> simple counter </span><span class="Comment">*/</span>
+    <span class="Type">int</span> sign = <span class="Number">0</span>;               <span class="Comment">/*</span><span class="Comment"> sign </span><span class="Comment">*/</span>
+    <span class="Type">long</span> <span class="Type">long</span> x1 = <span class="Number">0</span>;           <span class="Comment">/*</span><span class="Comment"> temp variable for 2 * PI remainder </span><span class="Comment">*/</span>
+
+    <span class="Conditional">if</span> (argc &lt; <span class="Number">2</span>)
+    {
+        printf(<span class="String">&quot;Usage: </span><span class="Special">%s</span><span class="String"> x [delta]</span><span class="Special">\n</span><span class="String">x in radians, default delta is </span><span class="Special">%.7f</span><span class="String">.</span><span class="Special">\n</span><span class="String">&quot;</span>,
+                argv[<span class="Number">0</span>],
+                DEFAULT_DELTA_ERROR);
+        <span class="Statement">return</span> <span class="Number">1</span>;
+    }
+
+    <span class="Comment">/*</span><span class="Comment"> Get x argument </span><span class="Comment">*/</span>
+    x = strtod(argv[<span class="Number">1</span>], <span class="Constant">NULL</span>);
+    <span class="Conditional">if</span> (x &gt; <span class="Number">2</span> * PI ||
+            x &lt; - <span class="Number">2</span> * PI)
+    {
+        <span class="Comment">/*</span><span class="Comment"> Calculate 2 * PI remainder </span><span class="Comment">*/</span>
+        <span class="Conditional">if</span> (x &gt; <span class="Number">1e14</span> ||
+                x &lt; -<span class="Number">1e14</span>)
+        {
+            printf(<span class="String">&quot;Error: max x is 1e14</span><span class="Special">\n</span><span class="String">&quot;</span>);
+            <span class="Statement">return</span> <span class="Number">2</span>;
+        }
+        x1 = (<span class="Type">long</span> <span class="Type">long</span>)(x / (<span class="Number">2</span> * PI));
+        x = x - x1 * <span class="Number">2</span> * PI;
+    }
+
+    <span class="Comment">/*</span><span class="Comment"> Get delta error argument</span>
+<span class="Comment">       otherwise assign default value </span><span class="Comment">*/</span>
+    <span class="Conditional">if</span> (argc &lt; <span class="Number">3</span>)
+    {
+        d_error = DEFAULT_DELTA_ERROR;
+    }
+    <span class="Conditional">else</span>
+    {
+        d_error = strtod(argv[<span class="Number">2</span>], <span class="Constant">NULL</span>);
+        <span class="Conditional">if</span> (d_error == <span class="Number">0</span>)
+        {
+            d_error = DEFAULT_DELTA_ERROR;
+        }
+    }
+    <span class="Conditional">if</span> (d_error &lt; <span class="Number">0</span>)
+    {
+        d_error *= -<span class="Number">1</span>;
+    }
+    <span class="Conditional">if</span> (x &lt; <span class="Number">0</span>)
+    {
+        d_error *= -<span class="Number">1</span>;
+    }
+
+    <span class="Comment">/*</span><span class="Comment"> Prerequisites </span><span class="Comment">*/</span>
+    x2 = x * x;
+    term = x;
+    sum = term;
+
+    <span class="Comment">/*</span><span class="Comment"> Main cycle </span><span class="Comment">*/</span>
+    <span class="Statement">while</span> (<span class="Number">1</span>)
+    {
+        <span class="Comment">/*</span><span class="Comment"> delta factorial as multiplication</span>
+<span class="Comment">           of two consecutive counter values </span><span class="Comment">*/</span>
+        d_factorial = ++i;
+        d_factorial *= ++i;
+        <span class="Comment">/*</span><span class="Comment"> Calculate the next term </span><span class="Comment">*/</span>
+        term *= x2 / d_factorial;
+        <span class="Conditional">if</span> (sign)
+        {
+            <span class="Comment">/*</span><span class="Comment"> '+' term </span><span class="Comment">*/</span>
+            sum += term;
+            sign = <span class="Number">0</span>;
+        }
+        <span class="Conditional">else</span>
+        {
+            <span class="Comment">/*</span><span class="Comment"> '-' term </span><span class="Comment">*/</span>
+            sum -= term;
+            sign = <span class="Number">1</span>;
+        }
+        <span class="Conditional">if</span> ((term &gt;= <span class="Number">0</span> &amp;&amp;
+                    term &lt; d_error) ||
+                (term &lt; <span class="Number">0</span> &amp;&amp;
+                 term &gt; d_error))
+        {
+            <span class="Comment">/*</span><span class="Comment"> Quit if acceptable accuracy is achieved </span><span class="Comment">*/</span>
+            <span class="Statement">break</span>;
+        }
+    }
+
+    <span class="Comment">/*</span><span class="Comment"> Print the result </span><span class="Comment">*/</span>
+    printf(<span class="String">&quot;sin(%&quot;</span> DEFAULT_FORMAT_PRECISION <span class="String">&quot;f) = %&quot;</span> DEFAULT_FORMAT_PRECISION <span class="String">&quot;f</span><span class="Special">\n</span><span class="String">&quot;</span>,
+            x,
+            sum);
+
+    <span class="Statement">return</span> <span class="Number">0</span>;
+}
+</pre>
+</body>
+</html>
+<!-- vim: set foldmethod=manual : -->
